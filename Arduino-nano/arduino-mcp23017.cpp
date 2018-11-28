@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <Wire.h>
 
-
 uint8_t MCPMa = 0;
 uint8_t MCPMb = 1;
 uint8_t MCPFa = 2;
@@ -18,7 +17,6 @@ uint8_t MCP_INIT   = 0x00; // MCP init
 uint8_t MCP_TO_OUT = 0x00; // Register Address of Port A
 uint8_t MCP_TO_IN  = 0x01; // Register Address of Port A
 
-
 int delay_v = 10;   //refresh timer 10 ms
 int delay_mili_micro = 1;
 
@@ -34,16 +32,17 @@ union uMCP2{
 };           
 uMCP2 MCP2u = {0};
 
-char RS_CHAR = "";
+char RS_CHAR ;
 String RS_BUFFER = "";
 String RS_VALUE = "";
-char RS_DELIMITER = ",";
-uint16_t RS_POSITION = 0;
+char RS_DELIMITER = ',';
+int RS_POSITION = 0;
+char RS_FLAG = '\n';
 
-bool receiver() {
+bool rsReceiver() {
     if(Serial.available()) {
       RS_CHAR = char(Serial.read());
-      if(RS_CHAR == "\n") {
+      if(RS_CHAR == RS_FLAG) {
         RS_VALUE = RS_BUFFER;
         RS_BUFFER = "";
         return true;
@@ -57,29 +56,29 @@ bool receiver() {
         return false;
 }
 
-String Cmd() {
+String getCmd() {
     RS_POSITION = RS_VALUE.indexOf(RS_DELIMITER);
-    if(RS_POSITION > -1) {
+    if(RS_POSITION > -1) 
         return RS_VALUE.substring(0, RS_POSITION); 
-    }   
+    else 
+      return  RS_VALUE;
 }
+
 bool isCmd(String CMD){
-    if (CMD == Cmd())
-        return true;
+    if (getCmd() == CMD)
+         return true;
     else 
         return false;
 }
 
 String getValue() {
     RS_POSITION = RS_VALUE.indexOf(RS_DELIMITER);
-
-    if(RS_POSITION > -1) {
-      return RS_VALUE.substring(RS_POSITION + 1, RS_VALUE.length());
-    }
-    else {
-      return "";
-    }
-  }
+    
+    if(RS_POSITION > -1) 
+        return RS_VALUE.substring(RS_POSITION + 1, RS_VALUE.length());
+    else 
+        return "else";
+}
 
 void print_binary(uint32_t &v)
 {  
@@ -116,25 +115,46 @@ void stateMcpToOn(uint8_t &I2C_ADDR,uint8_t PIN, uint8_t &MEMORY, uint8_t &FORCE
         if (SIDE == MCPa){
             Wire.write(MCP_A_ADDR);
             Wire.write(MEMORY);
-            Serial.println(MEMORY);   
+           
         }
         if (SIDE == MCPb){
             Wire.write(MCP_B_ADDR);
             Wire.write(MEMORY);  
-            Serial.println(MEMORY);    
+           
         }
         Wire.endTransmission();    
     }
  }
-
-
-
+ void setAllMcp(uint8_t &I2C_ADDR,uint8_t &READED_MEM, uint8_t &MEMORY, uint8_t &FORCED,uint8_t SIDE){
+    uint8_t mask = 0;
+    for (uint8_t i = 0; i < sizeof(MEMORY)*8; ++i){
+      mask = (1 << i);
+      if (( FORCED & mask) != mask){
+      if (( MEMORY & mask) != (READED_MEM & mask)){
+            MEMORY ^=  mask;}
+       }
+    }
+     Wire.beginTransmission(I2C_ADDR);
+    if (SIDE == MCPa){
+        Wire.write(MCP_A_ADDR);
+        Wire.write(MEMORY);
+       
+    }
+    if (SIDE == MCPb){
+        Wire.write(MCP_B_ADDR);
+        Wire.write(MEMORY);  
+      
+    }
+    Wire.endTransmission();    
+   
+ }
 
 void getMcpValue(uint8_t &I2C_ADDR,uint8_t PIN, uint8_t &MEMORY, uint8_t &FORCED,uint8_t SIDE){
     uint8_t value = 0;
     Wire.beginTransmission(I2C_ADDR);
     if (SIDE == MCPa){
         Wire.write(MCP_A_ADDR);
+        Wire.endTransmission();    
         Wire.requestFrom((int)I2C_ADDR, 1);
         while(Wire.available()) {   
             value = Wire.read();
@@ -142,19 +162,45 @@ void getMcpValue(uint8_t &I2C_ADDR,uint8_t PIN, uint8_t &MEMORY, uint8_t &FORCED
     }
     if (SIDE == MCPb){
         Wire.write(MCP_B_ADDR);
+         Wire.endTransmission();    
         Wire.requestFrom((int)I2C_ADDR, 1);
         while(Wire.available()) {   
             value = Wire.read();
         }       
     }
-    Wire.endTransmission();    
+   
     uint8_t mask = (1 << PIN);
     if (( FORCED & mask) != mask){
       if (( MEMORY & mask) > (value & mask))
-            MEMORY |= mask;
+            MEMORY |= (value & mask);
       if (( MEMORY & mask) < (value & mask))
-            MEMORY &= ~mask;
+            MEMORY &= ~(value & mask);
     }
+}
+
+uint8_t getAllMcpValues(uint8_t &I2C_ADDR,uint8_t SIDE){
+    uint8_t value = 0;
+    Wire.beginTransmission(I2C_ADDR);
+    if (SIDE == MCPa){
+        Wire.write(MCP_A_ADDR);
+        Wire.endTransmission();
+        Wire.requestFrom((int)I2C_ADDR, 1);
+        while(Wire.available()) {   
+            value = Wire.read();
+            Serial.println(value);
+        } 
+    }
+    if (SIDE == MCPb){
+        Wire.write(MCP_B_ADDR);
+        Wire.endTransmission();
+        Wire.requestFrom((int)I2C_ADDR, 1);
+        while(Wire.available()) {   
+            value = Wire.read();
+            Serial.println(value);
+        }       
+    }
+        
+    return value;
 }
 
 void stateMcpToOff(uint8_t &I2C_ADDR, uint8_t PIN, uint8_t &MEMORY, uint8_t &FORCED,uint8_t SIDE, bool FORCE){
@@ -176,21 +222,21 @@ void stateMcpToOff(uint8_t &I2C_ADDR, uint8_t PIN, uint8_t &MEMORY, uint8_t &FOR
             Wire.endTransmission();    
         }
        
- }
-
+}
 
 void serialCom(){
-
-    if(receiver()) {
-        
+    if(rsReceiver()) {
         if(isCmd("test")) {
             Serial.println("True");
+     
         }
         if(isCmd("delay")) {
-            delay_v = getValue().toInt();
+            delay_v = 1;
+            Serial.println(getValue().toInt());
         }
         if(isCmd("delay_mu")) {
             delay_mili_micro = getValue().toInt();
+            Serial.println(delay_mili_micro);
         }
 
         if(isCmd("gMCP1")) {
@@ -201,11 +247,7 @@ void serialCom(){
         if(isCmd("gMCP2")) {
              printAll(one,MCP1u.MCP1p);
         }
-        
-        
-       
-
-    }
+     }
 }
 
 void initMcp(uint8_t &MCP_ADDR, uint8_t &MCP_INIT,uint8_t &MCP_A,uint8_t &MCP_B ){   
@@ -219,42 +261,29 @@ void initMcp(uint8_t &MCP_ADDR, uint8_t &MCP_INIT,uint8_t &MCP_A,uint8_t &MCP_B 
 
 void setup() {
     Serial.begin(115200);
-    initMcp(MCP1_ADDR, MCP_INIT, MCP_TO_OUT, MCP_TO_OUT);
-    initMcp(MCP2_ADDR, MCP_INIT, MCP_TO_OUT, MCP_TO_OUT);
+    //initMcp(MCP1_ADDR, MCP_INIT, MCP_TO_IN, MCP_TO_OUT);
+   // initMcp(MCP2_ADDR, MCP_INIT, MCP_TO_IN, MCP_TO_OUT);
+    initMcp(MCP1_ADDR, MCP_INIT, MCP_TO_OUT , MCP_TO_IN);
+    initMcp(MCP2_ADDR, MCP_INIT, MCP_TO_OUT, MCP_TO_IN);
 }
 
 
 
 
-
-
+uint8_t dupa;
+uint8_t dupa2;
 void loop() {
     serialCom();
-    for(uint8_t i=0; i<16;++i){  
-        stateMcpToOn(MCP2_ADDR,i,MCP2u.MCP2[MCPMa],MCP2u.MCP2[MCPFa],MCPa,true);    
-        serialCom();
-        if (delay_mili_micro > 0)
-             delay(delay_v);    
-        else
-             delayMicroseconds(delay_v);      
-        stateMcpToOff(MCP2_ADDR,i,MCP2u.MCP2[MCPMa],MCP2u.MCP2[MCPFa],MCPa,true);
-        serialCom();
-        if (delay_mili_micro > 0)
-             delay(delay_v);    
-        else
-             delayMicroseconds(delay_v);       
-        stateMcpToOn(MCP1_ADDR,i,MCP1u.MCP1[MCPMb],MCP1u.MCP1[MCPFb],MCPb,true);    
-        serialCom();
-        if (delay_mili_micro > 0)
-            delay(delay_v);    
-        else
-            delayMicroseconds(delay_v);      
-        stateMcpToOff(MCP1_ADDR,i,MCP1u.MCP1[MCPMb],MCP1u.MCP1[MCPFb],MCPb,true);
-        serialCom();
-        if (delay_mili_micro > 0)
-             delay(delay_v);    
-        else
-             delayMicroseconds(delay_v);       
+     dupa = getAllMcpValues(MCP1_ADDR,MCPa);
+     dupa2 = getAllMcpValues(MCP2_ADDR,MCPa);
+    // Serial.println(dupa);
+     //Serial.println(dupa2);
+     setAllMcp(MCP1_ADDR, dupa, MCP1u.MCP1[MCPMb], MCP1u.MCP1[MCPFb],MCPb);
+     setAllMcp(MCP2_ADDR, dupa2, MCP2u.MCP2[MCPMb], MCP2u.MCP2[MCPFb],MCPb);
    
+    if (delay_mili_micro > 0)
+         delay(delay_v);    
+    else
+         delayMicroseconds(delay_v);       
+
      }    
-}
