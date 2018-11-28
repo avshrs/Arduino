@@ -1,7 +1,6 @@
-#include <RBD_SerialManager.h>
 #include <stdint.h>
 #include <Wire.h>
-RBD::SerialManager serial_manager;
+
 
 uint8_t MCPMa = 0;
 uint8_t MCPMb = 1;
@@ -35,7 +34,52 @@ union uMCP2{
 };           
 uMCP2 MCP2u = {0};
 
+char RS_CHAR = "";
+String RS_BUFFER = "";
+String RS_VALUE = "";
+char RS_DELIMITER = ",";
+uint16_t RS_POSITION = 0;
 
+bool receiver() {
+    if(Serial.available()) {
+      RS_CHAR = char(Serial.read());
+      if(RS_CHAR == "\n") {
+        RS_VALUE = RS_BUFFER;
+        RS_BUFFER = "";
+        return true;
+      }
+      else {
+        RS_BUFFER += RS_CHAR;
+        return false;
+        }
+    }
+    else 
+        return false;
+}
+
+String Cmd() {
+    RS_POSITION = RS_VALUE.indexOf(RS_DELIMITER);
+    if(RS_POSITION > -1) {
+        return RS_VALUE.substring(0, RS_POSITION); 
+    }   
+}
+bool isCmd(String CMD){
+    if (CMD == Cmd())
+        return true;
+    else 
+        return false;
+}
+
+String getValue() {
+    RS_POSITION = RS_VALUE.indexOf(RS_DELIMITER);
+
+    if(RS_POSITION > -1) {
+      return RS_VALUE.substring(RS_POSITION + 1, RS_VALUE.length());
+    }
+    else {
+      return "";
+    }
+  }
 
 void print_binary(uint32_t &v)
 {  
@@ -136,24 +180,25 @@ void stateMcpToOff(uint8_t &I2C_ADDR, uint8_t PIN, uint8_t &MEMORY, uint8_t &FOR
 
 
 void serialCom(){
-    if(serial_manager.onReceive()) {
+
+    if(receiver()) {
         
-        if(serial_manager.isCmd("test")) {
-            serial_manager.println("True");
+        if(isCmd("test")) {
+            Serial.println("True");
         }
-        if(serial_manager.isCmd("delay")) {
-            delay_v = serial_manager.getParam().toInt();
+        if(isCmd("delay")) {
+            delay_v = getValue().toInt();
         }
-        if(serial_manager.isCmd("delay_mu")) {
-            delay_mili_micro = serial_manager.getParam().toInt();
+        if(isCmd("delay_mu")) {
+            delay_mili_micro = getValue().toInt();
         }
 
-        if(serial_manager.isCmd("gMCP1")) {
+        if(isCmd("gMCP1")) {
             printAll(zero,MCP1u.MCP1p);
            
         }
         
-        if(serial_manager.isCmd("gMCP2")) {
+        if(isCmd("gMCP2")) {
              printAll(one,MCP1u.MCP1p);
         }
         
@@ -173,7 +218,7 @@ void initMcp(uint8_t &MCP_ADDR, uint8_t &MCP_INIT,uint8_t &MCP_A,uint8_t &MCP_B 
 }
 
 void setup() {
-    serial_manager.start();
+    Serial.begin(115200);
     initMcp(MCP1_ADDR, MCP_INIT, MCP_TO_OUT, MCP_TO_OUT);
     initMcp(MCP2_ADDR, MCP_INIT, MCP_TO_OUT, MCP_TO_OUT);
 }
@@ -213,6 +258,3 @@ void loop() {
    
      }    
 }
-
-
-
