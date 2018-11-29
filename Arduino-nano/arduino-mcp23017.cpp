@@ -265,7 +265,7 @@ void initMcp(const uint8_t &MCP_ADDR,const  uint8_t &MCP_INIT,const uint8_t &MCP
 }
 
 void setup(){
-    Serial.begin(115200);
+    Serial.begin(2000000);
     //  chipset addres, init seq., A side   , B side 
     initMcp(MCP1_ADDR, MCP_INIT, MCP_TO_IN, MCP_TO_OUT);
     initMcp(MCP2_ADDR, MCP_INIT, MCP_TO_IN, MCP_TO_OUT);
