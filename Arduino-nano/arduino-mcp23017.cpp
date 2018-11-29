@@ -9,8 +9,14 @@ const uint8_t MCPa  = 0;
 const uint8_t MCPb  = 1;
 const uint8_t HUMAN = 1;
 const uint8_t BINARY = 0;
-const uint8_t MCP1_ADDR  = 0x20;
-const uint8_t MCP2_ADDR  = 0x21;
+const uint8_t MCP1_ADDR  = 0x20; //a2 gnd | a1 gnd | a0 gnd 
+const uint8_t MCP2_ADDR  = 0x21; //a2 gnd | a1 gnd | a0 +5v
+const uint8_t MCP3_ADDR  = 0x22; //a2 gnd | a1 +5  | a0 gnd 
+const uint8_t MCP4_ADDR  = 0x23; //a2 gnd | a1 +5  | a0 +5v
+const uint8_t MCP5_ADDR  = 0x24; //a2 +5  | a1 gnd | a0 gnd 
+const uint8_t MCP6_ADDR  = 0x25; //a2 +5  | a1 gnd | a0 +5v
+const uint8_t MCP7_ADDR  = 0x26; //a2 +5  | a1 +5  | a0 gnd
+const uint8_t MCP8_ADDR  = 0x27; //a2 +5  | a1 +5  | a0 +5v
 const uint8_t MCP_A_ADDR = 0x12; // Register Address of Port A
 const uint8_t MCP_B_ADDR = 0x13; // Register Address of Port B
 const uint8_t MCP_INIT   = 0x00; // MCP init
@@ -37,6 +43,42 @@ union uMCP2{
     uint8_t  MCP2[4]; 
 };           
 uMCP2 MCP2u = {0};
+
+union uMCP3{
+    uint32_t MCP3p;     
+    uint8_t  MCP3[4]; 
+};           
+uMCP3 MCP3u = {0};
+
+union uMCP4{
+    uint32_t MCP4p;     
+    uint8_t  MCP4[4]; 
+};           
+uMCP4 MCP4u = {0};
+
+union uMCP5{
+    uint32_t MCP5p;     
+    uint8_t  MCP5[4]; 
+}; 
+uMCP5 MCP5u = {0};
+
+union uMCP6{
+    uint32_t MCP6p;     
+    uint8_t  MCP6[4]; 
+};           
+uMCP6 MCP6u = {0};
+
+union uMCP7{
+    uint32_t MCP7p;     
+    uint8_t  MCP7[4]; 
+};           
+uMCP7 MCP7u = {0};
+
+union uMCP8{
+    uint32_t MCP8p;     
+    uint8_t  MCP8[4]; 
+};           
+uMCP8 MCP8u = {0};
 
 bool rsReceiver() {
     if(Serial.available()) {
@@ -84,7 +126,6 @@ void print_binary(uint32_t &v){
            Serial.print("1");
        else
            Serial.print("0"); 
-       
     }
     Serial.println(" "); 
 }
@@ -102,8 +143,6 @@ void printAll(const uint8_t &HUMAN,uint32_t &MEMORY){
     else
         print_binary(MEMORY);
 }
-
-
 
 
 void setMcpToOn(const uint8_t &I2C_ADDR,uint8_t PIN, uint8_t &MEMORY, uint8_t &FORCED,const uint8_t SIDE, bool FORCE){
@@ -211,51 +250,140 @@ void serialCom(){
              printAll(BINARY,MCP2u.MCP2p);
         }
 
-        if(isCmd("setMCP1aON")) 
-            setMcpToOn(MCP1_ADDR,(uint8_t)getValue().toInt(),  MCP1u.MCP1[MCPMa],MCP1u.MCP1[MCPFa],MCPa, true);
+        if(isCmd("setMCP")) {
+            String d = getValue();
+            uint8_t mcp_addr ;
+            uint8_t mem ;
+            uint8_t force ;
+            uint8_t side ;
+            if (d[0] == '1'){
+                   mcp_addr = MCP1_ADDR;
+                if(d[1] == 'a') {
+                       mem = MCP1u.MCP1[MCPMa] ;
+                       force = MCP1u.MCP1[MCPFa] ;
+                       side = MCPa;
+                }
+                else if(d[1] == 'b'){
+                       mem = MCP1u.MCP1[MCPMb] ;
+                       force = MCP1u.MCP1[MCPFb] ;
+                       side = MCPb;
+                } 
+                
+            }
+            else if (d[0] == '2') {
+                   mcp_addr = MCP2_ADDR;
+                if(d[1] == 'a') {
+                       mem = MCP2u.MCP2[MCPMa] ;
+                       force = MCP2u.MCP2[MCPFa] ;
+                       side = MCPa;
+                }
+                else if(d[1] == 'b'){
+                       mem = MCP2u.MCP2[MCPMb] ;
+                       force = MCP2u.MCP2[MCPFb] ;
+                       side = MCPb;
+                } 
+                
+            }
+            else if (d[0] == '3') {
+                   mcp_addr = MCP3_ADDR;
+                if(d[1] == 'a') {
+                       mem = MCP3u.MCP3[MCPMa] ;
+                       force = MCP3u.MCP3[MCPFa] ;
+                       side = MCPa;
+                }
+                else if(d[1] == 'b'){
+                       mem = MCP3u.MCP3[MCPMb] ;
+                       force = MCP3u.MCP3[MCPFb] ;
+                       side = MCPb;
+                } 
+                
+            }
+            else if (d[0] == '4') {
+                   mcp_addr = MCP4_ADDR;
+                if(d[1] == 'a') {
+                       mem = MCP4u.MCP4[MCPMa] ;
+                       force = MCP4u.MCP4[MCPFa] ;
+                       side = MCPa;
+                }
+                else if(d[1] == 'b'){
+                       mem = MCP4u.MCP4[MCPMb] ;
+                       force = MCP4u.MCP4[MCPFb] ;
+                       side = MCPb;
+                } 
 
-        if(isCmd("setMCP1aOFF")) 
-            setMcpToOff(MCP1_ADDR,(uint8_t)getValue().toInt(),  MCP1u.MCP1[MCPMa],MCP1u.MCP1[MCPFa],MCPa, true);
- 
-        if(isCmd("setMCP1bON")) 
-            setMcpToOn(MCP1_ADDR,(uint8_t)getValue().toInt(),  MCP1u.MCP1[MCPMa],MCP1u.MCP1[MCPFa],MCPa, true);
- 
-        if(isCmd("setMCP1bOFF")) 
-            setMcpToOff(MCP1_ADDR,(uint8_t)getValue().toInt(),  MCP1u.MCP1[MCPMb],MCP1u.MCP1[MCPFb],MCPb, true);
- 
-        if(isCmd("setMCP2aON")) 
-            setMcpToOn(MCP2_ADDR,(uint8_t)getValue().toInt(),  MCP2u.MCP2[MCPMa],MCP2u.MCP2[MCPFa],MCPa, true);
- 
-        if(isCmd("setMCP2aOFF")) 
-            setMcpToOff(MCP2_ADDR,(uint8_t)getValue().toInt(),  MCP2u.MCP2[MCPMa],MCP2u.MCP2[MCPFa],MCPa, true);
- 
-        if(isCmd("setMCP2bON")) 
-            setMcpToOn(MCP2_ADDR,(uint8_t)getValue().toInt(),  MCP2u.MCP2[MCPMa],MCP2u.MCP2[MCPFa],MCPa, true);
- 
-        if(isCmd("setMCP2bOFF")) 
-            setMcpToOff(MCP2_ADDR,(uint8_t)getValue().toInt(),  MCP2u.MCP2[MCPMb],MCP2u.MCP2[MCPFb],MCPb, true);
-       
+            }
+            else if (d[0] == '5') {
+                   mcp_addr = MCP5_ADDR;
+                if(d[1] == 'a') {
+                       mem = MCP5u.MCP5[MCPMa] ;
+                       force = MCP5u.MCP5[MCPFa] ;
+                       side = MCPa;
+                }
+                else if(d[1] == 'b'){
+                       mem = MCP5u.MCP5[MCPMb] ;
+                       force = MCP5u.MCP5[MCPFb] ;
+                       side = MCPb;
+                } 
+            }
+            else if (d[0] == '6') {
+                   mcp_addr = MCP6_ADDR;
+                if(d[1] == 'a') {
+                       mem = MCP6u.MCP6[MCPMa] ;
+                       force = MCP6u.MCP6[MCPFa] ;
+                       side = MCPa;
+                }
+                else if(d[1] == 'b'){
+                       mem = MCP6u.MCP6[MCPMb] ;
+                       force = MCP6u.MCP6[MCPFb] ;
+                       side = MCPb;
+                } 
+            }
+            else if (d[0] == '7'){
+                   mcp_addr = MCP7_ADDR;
+                if(d[1] == 'a') {
+                       mem = MCP7u.MCP7[MCPMa] ;
+                       force = MCP7u.MCP7[MCPFa] ;
+                       side = MCPa;
+                }
+                else if(d[1] == 'b'){
+                       mem = MCP7u.MCP7[MCPMb] ;
+                       force = MCP7u.MCP7[MCPFb] ;
+                       side = MCPb;
+                } 
+            }
+            else if (d[0] == '8'){
+                   mcp_addr = MCP8_ADDR;
+                if(d[1] == 'a') {
+                       mem = MCP8u.MCP8[MCPMa] ;
+                       force = MCP8u.MCP8[MCPFa] ;
+                       side = MCPa;
+                }
+                else if(d[1] == 'b'){
+                       mem = MCP8u.MCP8[MCPMb] ;
+                       force = MCP8u.MCP8[MCPFb] ;
+                       side = MCPb;
+                } 
+            }
+            String s = static_cast<String>(d[2]);
+            if (d[3] == 1)
+                setMcpToOn(mcp_addr,s.toInt(), mem, force, side, true);
+            if (d[3] == 0)
+                setMcpToOff(mcp_addr,s.toInt(), mem, force, side, true);
+        }   
+        
         if(isCmd("help")) {
             Serial.println("delay \t\t- set loop dlelay");
             Serial.println("delay_mu \t\t- set from Miliseconds (1) to Microseconds (0)");
-            Serial.println("readMCP1 \t\t- read all values from MCP1 in human ");
-            Serial.println("BinReadMCP1 \t\t- read all values from MCP1 in binary ");
-            Serial.println("readMCP2 \t\t- read all values from MCP2 in human ");
-            Serial.println("BinReadMCP2 \t\t- read all values from MCP2 in binary ");
-            Serial.println("setMCP1aON \t\t- set output from MCP1 side a to on");
-            Serial.println("setMCP1aOFF \t\t- set output from MCP1 side a to off");
-            Serial.println("setMCP1bON \t\t- set output from MCP1 side b to on");
-            Serial.println("setMCP1bOFF \t\t- set output from MCP1 side b to off");
-            Serial.println("setMCP2aON \t\t- set output from MCP2 side a to on");
-            Serial.println("setMCP2aOFF \t\t- set output from MCP2 side a to off");
-            Serial.println("setMCP2bON \t\t- set output from MCP2 side b to on");
-            Serial.println("setMCP2bOFF \t\t- set output from MCP2 side b to off");
+            Serial.println("readMCP1 \t\t- read all values from MCP1 in human");
+            Serial.println("BinReadMCP1 \t\t- read all values from MCP1 in binary");
+            Serial.println("readMCP2 \t\t- read all values from MCP2 in human");
+            Serial.println("BinReadMCP2 \t\t- read all values from MCP2 in binary");
+            Serial.println("setMCP\t\t- set output from MCP setMCP e.g. setMCP,1a11 (1) adres of mpc 1, (a) side ,(1) output number , (1) state");
         }
-       
-    }
+}
 }
 
-void initMcp(const uint8_t &MCP_ADDR,const  uint8_t &MCP_INIT,const uint8_t &MCP_B ,const uint8_t &MCP_A ){   
+void initMcp(const uint8_t &MCP_ADDR, const  uint8_t &MCP_INIT, const uint8_t &MCP_B, const uint8_t &MCP_A ){   
     Wire.begin();
     Wire.beginTransmission(MCP_ADDR);
     Wire.write(MCP_INIT);
@@ -265,7 +393,7 @@ void initMcp(const uint8_t &MCP_ADDR,const  uint8_t &MCP_INIT,const uint8_t &MCP
 }
 
 void setup(){
-    Serial.begin(2000000);
+    Serial.begin(1000000);
     //  chipset addres, init seq., A side   , B side 
     initMcp(MCP1_ADDR, MCP_INIT, MCP_TO_IN, MCP_TO_OUT);
     initMcp(MCP2_ADDR, MCP_INIT, MCP_TO_IN, MCP_TO_OUT);
