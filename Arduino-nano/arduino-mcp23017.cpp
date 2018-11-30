@@ -199,12 +199,11 @@ void writeAllMcp(const uint8_t &I2C_ADDR,uint8_t &MEMORY,const  uint8_t SIDE){
     if (SIDE == MCPb){
         Wire.write(MCP_B_ADDR);
         Wire.write(MEMORY);  
-      
     }
     Wire.endTransmission();   
 }
 
-void readAllMcpValues(const uint8_t &I2C_ADDR, uint8_t &MEMORY, uint8_t &FORCED,const uint8_t SIDE){
+void readAllMcp(const uint8_t &I2C_ADDR, uint8_t &MEMORY, uint8_t &FORCED,const uint8_t SIDE){
    uint8_t value = 0;
     Wire.beginTransmission(I2C_ADDR);
     if (SIDE == MCPa){
@@ -223,19 +222,7 @@ void readAllMcpValues(const uint8_t &I2C_ADDR, uint8_t &MEMORY, uint8_t &FORCED,
             value = Wire.read();
         }       
     }
-     
-    for (uint8_t i = 0 ; i <= sizeof(MEMORY)*8; ++i){
-    uint8_t mask = (1 << i);
-    if ((FORCED & mask) != mask){
-        if (( MEMORY & mask) != (value & mask)){
-              if (( MEMORY & mask) < (value & mask))
-                    MEMORY |= (value & mask);
-              if (( MEMORY & mask) > (value & mask))
-                    MEMORY &= ~(mask);
-              }
-    }
-    
-    }
+    MEMORY = MEMORY^((~FORCED)&(value^MEMORY));
 }
 
 
@@ -291,10 +278,7 @@ void serialCom(){
           if(isCmd("setMCP2bOff")) {
              setMcpToOff(MCP2_ADDR, getValue().toInt() , MCP2u.MCP2[MCPMb], MCP2u.MCP2[MCPFb], MCPb, true);
         }
-
-        
-           
-        
+      
         if(isCmd("help")) {
             Serial.println("delay \t\t- set loop dlelay");
             Serial.println("delay_mu \t\t- set from Miliseconds (1) to Microseconds (0)");
@@ -304,7 +288,7 @@ void serialCom(){
             Serial.println("BinReadMCP2 \t\t- read all values from MCP2 in binary");
             Serial.println("setMCP\t\t- set output from MCP setMCP e.g. setMCP,1b51 (1) adres of mpc 1, (a) side ,(1) output number , (1) state");
         }
-}
+    }
 }
 
 void initMcp(const uint8_t &MCP_ADDR, const  uint8_t &MCP_INIT, const uint8_t &MCP_A, const uint8_t &MCP_B ){   
@@ -326,8 +310,8 @@ void setup(){
 void loop(){
     serialCom();
     
-    readAllMcpValues(MCP1_ADDR, MCP1u.MCP1[MCPMa], MCP1u.MCP1[MCPFa], MCPa);
-    readAllMcpValues(MCP2_ADDR, MCP2u.MCP2[MCPMa], MCP2u.MCP2[MCPFa], MCPa);
+    readAllMcp(MCP1_ADDR, MCP1u.MCP1[MCPMa], MCP1u.MCP1[MCPFa], MCPa);
+    readAllMcp(MCP2_ADDR, MCP2u.MCP2[MCPMa], MCP2u.MCP2[MCPFa], MCPa);
     
     writeAllMcp(MCP2_ADDR, MCP2u.MCP2[MCPMa], MCPb);
     writeAllMcp(MCP1_ADDR, MCP1u.MCP1[MCPMa], MCPb);
