@@ -299,9 +299,15 @@ void serialCom(){
     }
 }
 
+void initMcp2(const uint8_t &MCP_ADDR, const  uint8_t &_MCP_INIT, const uint8_t &MCP_A, const uint8_t &MCP_B ){   
+    Wire.begin();
+    Wire.beginTransmission (MCP_ADDR);  // expander has I2C address 0x20
+    Wire.send (0x00);   // register 0 is the I/O direction register for Port A
+    Wire.send (0x00);   //  0x00 for all pins to output mode, 0xFF for all pins to input mode
+    Wire.endTransmission ();
+}
 
-
-
+//http://www.gammon.com.au/forum/?id=10940
 
 void initMcp(const uint8_t &MCP_ADDR, const  uint8_t &_MCP_INIT, const uint8_t &MCP_A, const uint8_t &MCP_B ){   
     Wire.begin();
