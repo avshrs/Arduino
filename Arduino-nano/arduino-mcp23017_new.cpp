@@ -40,53 +40,20 @@ char   RS_FLAG      = '\n';
 int    delay_v          = 1;   //refresh timer 10 ms
 int    delay_mili_micro = 1;
 
-union uMCP1{
-    uint32_t MCP1p;     
-    uint8_t  MCP1[4]; 
+union uMCP{
+    uint32_t MCPp;     
+    uint8_t  MCP[4]; 
 }; 
-uMCP1 MCP1u = {0};
+uMCP MCP1u = {0};
+uMCP MCP2u = {0};
+uMCP MCP3u = {0};
+uMCP MCP4u = {0};
+uMCP MCP5u = {0};
+uMCP MCP6u = {0};
+uMCP MCP7u = {0};
+uMCP MCP8u = {0};
 
-union uMCP2{
-    uint32_t MCP2p;     
-    uint8_t  MCP2[4]; 
-};           
-uMCP2 MCP2u = {0};
 
-union uMCP3{
-    uint32_t MCP3p;     
-    uint8_t  MCP3[4]; 
-};           
-uMCP3 MCP3u = {0};
-
-union uMCP4{
-    uint32_t MCP4p;     
-    uint8_t  MCP4[4]; 
-};           
-uMCP4 MCP4u = {0};
-
-union uMCP5{
-    uint32_t MCP5p;     
-    uint8_t  MCP5[4]; 
-}; 
-uMCP5 MCP5u = {0};
-
-union uMCP6{
-    uint32_t MCP6p;     
-    uint8_t  MCP6[4]; 
-};           
-uMCP6 MCP6u = {0};
-
-union uMCP7{
-    uint32_t MCP7p;     
-    uint8_t  MCP7[4]; 
-};           
-uMCP7 MCP7u = {0};
-
-union uMCP8{
-    uint32_t MCP8p;     
-    uint8_t  MCP8[4]; 
-};           
-uMCP8 MCP8u = {0};
 
 bool rsReceiver() {
     if(Serial.available()) {
@@ -249,10 +216,10 @@ void serialCom(){
             Serial.println(delay_mili_micro);
         }
         if(isCmd("readMCP1")) {
-            printAll(HUMAN,MCP1u.MCP1p);
+            printAll(HUMAN,MCP1u.MCPp);
         }
         if(isCmd("BinReadMCP1")) {
-             printAll(BINARY,MCP1u.MCP1p);
+             printAll(BINARY,MCP1u.MCPp);
         }
         if(isCmd("readMCP2")) {
             printAll(HUMAN,MCP2u.MCP2p);
@@ -262,29 +229,29 @@ void serialCom(){
         }
          if(isCmd("setMCP1aOn")) {
            Serial.println("on");
-             setMcpToOn(MCP1_ADDR, getValue().toInt() , MCP1u.MCP1[MCPMa], MCP1u.MCP1[MCPFa], MCPa, true);
+             setMcpToOn(MCP1_ADDR, getValue().toInt() , MCP1u.MCP[MCPMa], MCP1u.MCP[MCPFa], MCPa, true);
         }
           if(isCmd("setMCP1bOn")) {
              Serial.println("on");
-             setMcpToOn(MCP1_ADDR, getValue().toInt() , MCP1u.MCP1[MCPMb], MCP1u.MCP1[MCPFb], MCPb, true);
+             setMcpToOn(MCP1_ADDR, getValue().toInt() , MCP1u.MCP[MCPMb], MCP1u.MCP[MCPFb], MCPb, true);
         }
         if(isCmd("setMCP1aOff")) {
-             setMcpToOff(MCP1_ADDR, getValue().toInt() , MCP1u.MCP1[MCPMa], MCP1u.MCP1[MCPFa], MCPa, true);
+             setMcpToOff(MCP1_ADDR, getValue().toInt() , MCP1u.MCP[MCPMa], MCP1u.MCP[MCPFa], MCPa, true);
         }
           if(isCmd("setMCP1bOff")) {
-             setMcpToOff(MCP1_ADDR, getValue().toInt() , MCP1u.MCP1[MCPMb], MCP1u.MCP1[MCPFb], MCPb, true);
+             setMcpToOff(MCP1_ADDR, getValue().toInt() , MCP1u.MCP[MCPMb], MCP1u.MCP[MCPFb], MCPb, true);
         }
          if(isCmd("setMCP2aOn")) {
-             setMcpToOn(MCP2_ADDR, getValue().toInt() , MCP2u.MCP2[MCPMa], MCP2u.MCP2[MCPFa], MCPa, true);
+             setMcpToOn(MCP2_ADDR, getValue().toInt() , MCP2u.MCP[MCPMa], MCP2u.MCP[MCPFa], MCPa, true);
         }
           if(isCmd("setMCP2bOn")) {
-             setMcpToOn(MCP2_ADDR, getValue().toInt() , MCP2u.MCP2[MCPMb], MCP2u.MCP2[MCPFb], MCPb, true);
+             setMcpToOn(MCP2_ADDR, getValue().toInt() , MCP2u.MCP[MCPMb], MCP2u.MCP[MCPFb], MCPb, true);
         }
         if(isCmd("setMCP2aOff")) {
-             setMcpToOff(MCP2_ADDR, getValue().toInt() , MCP2u.MCP2[MCPMa], MCP2u.MCP2[MCPFa], MCPa, true);
+             setMcpToOff(MCP2_ADDR, getValue().toInt() , MCP2u.MCP[MCPMa], MCP2u.MCP[MCPFa], MCPa, true);
         }
           if(isCmd("setMCP2bOff")) {
-             setMcpToOff(MCP2_ADDR, getValue().toInt() , MCP2u.MCP2[MCPMb], MCP2u.MCP2[MCPFb], MCPb, true);
+             setMcpToOff(MCP2_ADDR, getValue().toInt() , MCP2u.MCP[MCPMb], MCP2u.MCP[MCPFb], MCPb, true);
         }
       
         if(isCmd("help")) {
@@ -328,11 +295,11 @@ void setup(){
 void loop(){
     serialCom();
     
-    readAllMcp(MCP1_ADDR, MCP1u.MCP1[MCPMa], MCP1u.MCP1[MCPFa], MCPa);
-    readAllMcp(MCP2_ADDR, MCP2u.MCP2[MCPMa], MCP2u.MCP2[MCPFa], MCPa);
+    readAllMcp(MCP1_ADDR, MCP1u.MCP[MCPMa], MCP1u.MCP[MCPFa], MCPa);
+    readAllMcp(MCP2_ADDR, MCP2u.MCP[MCPMa], MCP2u.MCP[MCPFa], MCPa);
     
     writeAllMcp(MCP2_ADDR, MCP2u.MCP2[MCPMa], MCPb);
-    writeAllMcp(MCP1_ADDR, MCP1u.MCP1[MCPMa], MCPb);
+    writeAllMcp(MCP1_ADDR, MCP1u.MCP[MCPMa], MCPb);
     
     if (delay_mili_micro > 0)
          delay(delay_v);    
