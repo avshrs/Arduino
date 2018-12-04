@@ -1,6 +1,4 @@
 
-
-
 //helpers 
 #define  HUMAN  0x01
 #define  BINARY 0x00
@@ -14,11 +12,11 @@
 #define  MCP7_ADDR  0x26 //a2 +5  | a1 +5  | a0 gnd
 #define  MCP8_ADDR  0x27 //a2 +5  | a1 +5  | a0 +5v
 // mcp sides 
-#define  MCPa   0x00
-#define  MCPb   0x01
+#define  MCPa_INIT   0x00
+#define  MCPb_INIT   0x01
 
-#define  MCP_A_ADDR 0x12 // Register Address of Port A
-#define  MCP_B_ADDR 0x13 // Register Address of Port B
+#define  MCP_A_RW 0x12 // Register Address of Port A
+#define  MCP_B_RW 0x13 // Register Address of Port B
 
 #define  MCP_TO_OUT 0x00 // Register Address of Port A
 #define  MCP_TO_IN  0xFF // Register Address of Port A
