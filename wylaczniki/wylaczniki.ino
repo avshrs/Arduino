@@ -18,8 +18,25 @@ char   RS_FLAG      = '\n';
 int    delay_v          = 10;   //refresh timer 10 ms
 int    delay_mili_micro = 1;
 
+vector<uint8_t> binData = 0; 
 
 
+
+bool binReceiver() {
+  uint8_t buffer = 0;
+  if(Serial.available()) {
+    buffer = Serial.read());
+    if(buffer == 0x00) {
+      return true;
+    }
+    else{
+      binData.push_back(buffer)
+      return false;
+    }
+  }
+  else 
+    return false;
+}
 bool rsReceiver() {
   if(Serial.available()) {
     RS_CHAR = char(Serial.read());
@@ -121,6 +138,11 @@ void serialCom(){
     }
   }
 }
+void serialBinCom(){
+    uint8_t 
+
+}
+
 
 void setup(){
   Serial.begin(1000000);
