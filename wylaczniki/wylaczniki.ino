@@ -1,10 +1,9 @@
-#include <stdint.h>
+//#include <stdint.h>
 #include <Wire.h>
 #include "vars.h"
 #include "helpers.h"
 ArduMCP mcpArdu;
 #include "print_s.h"
-
 
 
 
@@ -15,28 +14,34 @@ char   RS_DELIMITER = ',';
 int    RS_POSITION  = 0;
 char   RS_FLAG      = '\n';
 
-int    delay_v          = 10;   //refresh timer 10 ms
+int    delay_v          = 1;   //refresh timer 10 ms
 int    delay_mili_micro = 1;
 
-vector<uint8_t> binData = 0; 
-
-
-
+uint8_t binData[5]={0}; 
+uint8_t byte_counter = 0;
+ SERIALMCPFRAME* data;
+uint8_t buffer = 0;
 bool binReceiver() {
-  uint8_t buffer = 0;
+  
   if(Serial.available()) {
-    buffer = Serial.read());
-    if(buffer == 0x00) {
+    buffer = Serial.read();
+    Serial.println(buffer);
+    byte_counter++;
+    if(byte_counter == 3) {
       return true;
+      byte_counter = 0;
+      buffer = 0;
+      data =(SERIALMCPFRAME*)binData;
     }
     else{
-      binData.push_back(buffer)
+      binData[byte_counter] = buffer;
       return false;
     }
   }
   else 
     return false;
 }
+
 bool rsReceiver() {
   if(Serial.available()) {
     RS_CHAR = char(Serial.read());
@@ -101,7 +106,17 @@ void printAll(const uint8_t &_HUMAN,uint32_t &MEMORY){
     mcpArdu.print_binary(MEMORY);
 }
 
-void serialCom(){
+void binSerialCom(){
+    if(binReceiver()){
+        if(data->HEAD == 0xA0)
+        Serial.println(0xA0);
+        if(data->HEAD == 0xA1)
+        Serial.println(0xA1);
+        //if(data->HEAD==0x00)
+        //Serial.println("0x00");
+    }
+}
+void charSerialCom(){
   if(rsReceiver()) {
     if(isCmd("test")) {
       Serial.println("True");
@@ -138,10 +153,7 @@ void serialCom(){
     }
   }
 }
-void serialBinCom(){
-    uint8_t 
 
-}
 
 
 void setup(){
@@ -153,7 +165,8 @@ void setup(){
 }
 
 void loop(){
-  serialCom();
+  binSerialCom();
+ charSerialCom();
 
   mcpArdu.readAllMcp(MCP1_ADDR, MCP1s.MCPAM, MCP1s.MCPAF, MCP1s.MCPAS, MCP_A_RW);
   mcpArdu.writeMcp(MCP1_ADDR, MCP1s.MCPAM, MCP_B_RW);

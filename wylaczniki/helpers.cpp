@@ -48,7 +48,7 @@ void ArduMCP::readAllMcp(const uint8_t &I2C_ADDR, uint8_t &MEMORY, uint8_t &FORC
       }
   STATE = value;
   MEMORY = MEMORY^((~FORCED)&(value^MEMORY));
-    Serial.print((uint16_t)SIDE);
+  /*  Serial.print((uint16_t)SIDE);
     Serial.print(" val=");
     print_binary8(value);
     Serial.print((uint16_t)SIDE);
@@ -56,7 +56,7 @@ void ArduMCP::readAllMcp(const uint8_t &I2C_ADDR, uint8_t &MEMORY, uint8_t &FORC
     print_binary8(MEMORY);
     Serial.print((uint16_t)SIDE);
     Serial.print(" for=");
-    print_binary8(FORCED);
+    print_binary8(FORCED);*/
 }
 
 void ArduMCP::print_binary8(uint8_t &v){  

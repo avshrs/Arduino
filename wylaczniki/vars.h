@@ -48,3 +48,12 @@ struct McpConf{
        uint8_t MCPBF = 0;
        uint8_t MCPBS = 0;
 };
+
+struct SERIALMCPFRAME{
+       uint8_t HEAD = 0;  //0xA0 read value from side = A /0xB0 read value from side = b //0xA1 write walue A //0xB1 write walue  B
+       uint8_t MCPADDRESS = 0; //sensor number i2c adres eg 0x20, 0x21 to 0x27
+       uint8_t PLOADA = 0;          
+       uint8_t PLOADB = 0;
+       
+};
+SERIALMCPFRAME SERIALMCPFRAME_;
