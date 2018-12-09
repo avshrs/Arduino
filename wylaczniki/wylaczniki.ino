@@ -21,22 +21,15 @@ uint8_t binData[5]={0};
 uint8_t byte_counter = 0;
  SERIALMCPFRAME* data;
 uint8_t buffer = 0;
+
 bool binReceiver() {
   
   if(Serial.available()) {
-    buffer = Serial.read();
-    Serial.println(buffer);
-    byte_counter++;
-    if(byte_counter == 3) {
-      return true;
-      byte_counter = 0;
-      buffer = 0;
-      data =(SERIALMCPFRAME*)binData;
-    }
-    else{
-      binData[byte_counter] = buffer;
-      return false;
-    }
+    //buffer = Serial.read(4);
+    uint16_t a = Serial.read();
+    Serial.print("HEAD ");
+    mcpArdu.print_binary16(a);
+
   }
   else 
     return false;
@@ -108,10 +101,12 @@ void printAll(const uint8_t &_HUMAN,uint32_t &MEMORY){
 
 void binSerialCom(){
     if(binReceiver()){
-        if(data->HEAD == 0xA0)
-        Serial.println(0xA0);
+        Serial.println(data->HEAD,BIN);
+         Serial.println(data->MCPADDRESS,BIN);
+       //   Serial.println(data->PLOADA,BIN);
+       //   Serial.println(data->PLOADB,BIN);
         if(data->HEAD == 0xA1)
-        Serial.println(0xA1);
+        Serial.println(0xA1, BIN);
         //if(data->HEAD==0x00)
         //Serial.println("0x00");
     }

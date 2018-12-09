@@ -70,6 +70,7 @@ void ArduMCP::print_binary8(uint8_t &v){
 }
 
 
+
 void ArduMCP::setMcpToOn(const uint8_t &I2C_ADDR,uint8_t PIN, uint8_t &MEMORY, uint8_t &FORCED,const uint8_t SIDE, bool FORCE){
   uint8_t mask = (1 << PIN);
   if((MEMORY & mask) != mask){
