@@ -1,6 +1,8 @@
 #include <Wire.h>
 #include "helpers.h"
 #import "Arduino.h"
+
+
 void ArduMCP::initMcp(const uint8_t &MCP_ADDR, const  uint8_t &MCP_SIDE, const uint8_t &MCP_DIRECTION){   
   Wire.begin();
   Wire.beginTransmission (MCP_ADDR);  // expander has I2C address 0x20
@@ -36,27 +38,19 @@ void ArduMCP::readAllMcp(const uint8_t &I2C_ADDR, uint8_t &MEMORY, uint8_t &FORC
       uint8_t mask = (1 << i);
       if ((value & mask) > 0) 
           if (((STATE & mask) == 0) && ((MEMORY & mask) > 0)){
-              Serial.println(" value > 0 force dis");
+             
               FORCED &= ~mask;
           }
       
       if ((value & mask) == 0) 
           if (((STATE & mask) > 0) && ((MEMORY & mask) == 0)){
               FORCED &= ~mask;
-               Serial.println(" value == 0");
+             
           }
       }
   STATE = value;
   MEMORY = MEMORY^((~FORCED)&(value^MEMORY));
-  /*  Serial.print((uint16_t)SIDE);
-    Serial.print(" val=");
-    print_binary8(value);
-    Serial.print((uint16_t)SIDE);
-    Serial.print(" mem=");
-    print_binary8(MEMORY);
-    Serial.print((uint16_t)SIDE);
-    Serial.print(" for=");
-    print_binary8(FORCED);*/
+
 }
 
 void ArduMCP::print_binary8(uint8_t &v){  
@@ -78,7 +72,7 @@ void ArduMCP::setMcpToOn(const uint8_t &I2C_ADDR,uint8_t PIN, uint8_t &MEMORY, u
   if(FORCE)
       if ((FORCED & mask) > 0)     
           FORCED &= ~mask;
-      else if ((FORCED & mask) == 0)     
+      else 
           FORCED |= mask;
     writeMcp(I2C_ADDR,MEMORY,SIDE);
   }
@@ -89,11 +83,11 @@ void ArduMCP::setMcpToOff(const uint8_t &I2C_ADDR, uint8_t PIN, uint8_t &MEMORY,
   uint8_t mask = (1 << PIN);
   if ((MEMORY &   mask) == mask){
     MEMORY &= ~mask;
- if(FORCE)
-            if (FORCED > 0)     
-                FORCED &= ~mask;
-            else if (FORCED == 0)     
-                FORCED |= mask;
+   if(FORCE)
+        if ((FORCED & mask) > 0)     
+            FORCED &= ~mask;
+        else      
+            FORCED |= mask;
     writeMcp(I2C_ADDR,MEMORY,SIDE);   
   }
 }

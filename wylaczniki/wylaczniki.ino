@@ -4,77 +4,60 @@
 #include "helpers.h"
 ArduMCP mcpArdu;
 #include "print_s.h"
+#include <EtherCard.h>
+#include <IPAddress.h>
 
 
+#define STATIC 0  // set to 1 to disable DHCP (adjust myip/gwip values below)
+SERIALMCPFRAME* data_udp;
+#if STATIC
+// ethernet interface ip address
+static byte myip[] = { 192,168,1,200 };
+// gateway ip address
+static byte gwip[] = { 192,168,1,1 };
+#endif
 
-char   RS_CHAR;
-String RS_BUFFER    = "";
-String RS_VALUE     = "";
-char   RS_DELIMITER = ',';
-int    RS_POSITION  = 0;
-char   RS_FLAG      = '\n';
+// ethernet mac address - must be unique on your network
+static byte mymac[] = { 0x70,0x69,0x69,0x2D,0x30,0x31 };
 
-int    delay_v          = 1;   //refresh timer 10 ms
-int    delay_mili_micro = 1;
+byte Ethernet::buffer[500]; // tcp/ip send and receive buffer
 
-uint8_t binData[5]={0}; 
-uint8_t byte_counter = 0;
- SERIALMCPFRAME* data;
-uint8_t buffer = 0;
-
-bool binReceiver() {
+//callback that prints received packets to the serial port
+void udpSerialPrint(uint16_t dest_port, uint8_t src_ip[IP_LEN], uint16_t src_port, const char *data, uint16_t len){
+  IPAddress src(src_ip[0],src_ip[1],src_ip[2],src_ip[3]);
   
-  if(Serial.available()) {
-    //buffer = Serial.read(4);
-    uint16_t a = Serial.read();
-    Serial.print("HEAD ");
-    mcpArdu.print_binary16(a);
+  data_udp =(SERIALMCPFRAME*)data;
+  binSerialCom();
+  mcpArdu.print_binary8(data_udp->HEAD);
+  mcpArdu.print_binary8(data_udp->MCPADDRESS);
+  mcpArdu.print_binary8(data_udp->PIN);
+  mcpArdu.print_binary8(data_udp->RW);
 
-  }
-  else 
-    return false;
+
 }
 
-bool rsReceiver() {
-  if(Serial.available()) {
-    RS_CHAR = char(Serial.read());
-    if(RS_CHAR == RS_FLAG) {
-      RS_VALUE = RS_BUFFER;
-      RS_BUFFER = "";
-      return true;
+int    delay_v          = 10;   //refresh timer 10 ms
+int    delay_mili_micro = 0;
+
+uint8_t binData[4]={0}; 
+uint8_t byte_counter = 0;
+
+uint8_t buffer = 0;
+/*
+bool binReceiver() {
+    if(Serial.available()) {
+        binData[byte_counter] = Serial.read();
+        ++byte_counter;
+        if (byte_counter > 3){
+            byte_counter = 0;
+            data_udp =(SERIALMCPFRAME*)binData;
+            return true;
+        }
     }
-    else{
-      RS_BUFFER += RS_CHAR;
+    else 
       return false;
-    }
-  }
-  else 
-    return false;
 }
-
-String getCmd() {
-  RS_POSITION = RS_VALUE.indexOf(RS_DELIMITER);
-  if(RS_POSITION > -1) 
-    return RS_VALUE.substring(0, RS_POSITION); 
-  else 
-    return  RS_VALUE;
-}
-
-bool isCmd(String CMD){
-  if (getCmd() == CMD)
-    return true;
-  else 
-    return false;
-}
-
-String getValue() {
-  RS_POSITION = RS_VALUE.indexOf(RS_DELIMITER);
-  if(RS_POSITION > -1) 
-    return RS_VALUE.substring(RS_POSITION + 1, RS_VALUE.length());
-  else 
-    return "else";
-}
-
+*/
 
 
 
@@ -100,54 +83,41 @@ void printAll(const uint8_t &_HUMAN,uint32_t &MEMORY){
 }
 
 void binSerialCom(){
-    if(binReceiver()){
-        Serial.println(data->HEAD,BIN);
-         Serial.println(data->MCPADDRESS,BIN);
-       //   Serial.println(data->PLOADA,BIN);
-       //   Serial.println(data->PLOADB,BIN);
-        if(data->HEAD == 0xA1)
-        Serial.println(0xA1, BIN);
-        //if(data->HEAD==0x00)
-        //Serial.println("0x00");
-    }
-}
-void charSerialCom(){
-  if(rsReceiver()) {
-    if(isCmd("test")) {
-      Serial.println("True");
-    }
-    if(isCmd("delay")) {
-      delay_v = getValue().toInt();
-      Serial.println(getValue().toInt());
-    }
-    if(isCmd("delay_mu")) {
-      delay_mili_micro = getValue().toInt();
-      Serial.println(delay_mili_micro);
-    }
-
-    if(isCmd("force")) {  // force,111 
-      String pars = getValue();
-      String par = (String)pars[1];
-      if (pars[0] == '1')
-          if (pars[2] == '1')
-              mcpArdu.setMcpToOn(MCP1_ADDR, par.toInt() , MCP1s.MCPAM,  MCP1s.MCPAF, MCP_B_RW, true);
-          else
-              mcpArdu.setMcpToOff(MCP1_ADDR, par.toInt() , MCP1s.MCPAM,  MCP1s.MCPAF, MCP_B_RW, true);
       
-    }
-  
-
-    if(isCmd("help")) {
-      Serial.println("delay \t\t- set loop dlelay");
-      Serial.println("delay_mu \t\t- set from Miliseconds (1) to Microseconds (0)");
-      Serial.println("readMCP1 \t\t- read all values from MCP1 in human");
-      Serial.println("BinReadMCP1 \t\t- read all values from MCP1 in binary");
-      Serial.println("readMCP2 \t\t- read all values from MCP2 in human");
-      Serial.println("BinReadMCP2 \t\t- read all values from MCP2 in binary");
-      Serial.println("setMCP\t\t- set output from MCP setMCP e.g. setMCP,1b51 (1) adres of mpc 1, (a) side ,(1) output number , (1) state");
-    }
-  }
+        if(data_udp->HEAD == 0xb1){  //#0xA0 read value from side = A /0xB0 read value from side = b //0xA1 write walue A //0xB1 write walue  B
+          Serial.println("0xb1"); 
+          if (data_udp->MCPADDRESS == 0x20){
+              Serial.println("0x20"); 
+           if (data_udp->RW != 0){
+              mcpArdu.setMcpToOn(data_udp->MCPADDRESS,data_udp->PIN, MCP1s.MCPAM, MCP1s.MCPAF,MCP_B_RW, true);
+              
+              Serial.println(0x01); 
+           }
+           else{
+                mcpArdu.setMcpToOff(data_udp->MCPADDRESS,data_udp->PIN, MCP1s.MCPAM, MCP1s.MCPAF,MCP_B_RW, true);
+                Serial.println(0x00); 
+           }
+          }
+          if (data_udp->MCPADDRESS == 0x21){
+            if (data_udp->RW != 0){
+                mcpArdu.setMcpToOn(data_udp->MCPADDRESS,data_udp->PIN, MCP2s.MCPAM, MCP2s.MCPAF,MCP_B_RW, true);
+                Serial.println(0x01);
+            }
+            else{
+                mcpArdu.setMcpToOff(data_udp->MCPADDRESS,data_udp->PIN, MCP2s.MCPAM, MCP2s.MCPAF,MCP_B_RW, true);
+                Serial.println(0x00); 
+            }
+          }
+          data_udp->MCPADDRESS= 0;
+          data_udp->HEAD = 0;
+          data_udp->PIN= 0;
+        }
+        
+    
 }
+
+
+
 
 
 
@@ -157,11 +127,32 @@ void setup(){
   mcpArdu.initMcp(MCP1_ADDR, MCPb_INIT, MCP_TO_OUT);
   mcpArdu.initMcp(MCP2_ADDR, MCPa_INIT, MCP_TO_IN);
   mcpArdu.initMcp(MCP2_ADDR, MCPb_INIT, MCP_TO_OUT);
+  Serial.println(F("\n[backSoon]"));
+  // Change 'SS' to your Slave Select pin, if you arn't using the default pin
+  if (ether.begin(sizeof Ethernet::buffer, mymac, SS) == 0)
+    Serial.println(F("Failed to access Ethernet controller"));
+    
+  
+
+  if (!ether.dhcpSetup())
+      Serial.println(F("DHCP failed"));
+
+    ether.printIp("IP:  ", ether.myip);
+  ether.printIp("GW:  ", ether.gwip);
+  ether.printIp("DNS: ", ether.dnsip);
+
+  //register udpSerialPrint() to port 1337
+  ether.udpServerListenOnPort(&udpSerialPrint, 1337);
+
+  //register udpSerialPrint() to port 42.
+  ether.udpServerListenOnPort(&udpSerialPrint, 42);
+  
 }
 
 void loop(){
   binSerialCom();
- charSerialCom();
+  //Serial.println(F("\n[backSoon]l"));
+  ether.packetLoop(ether.packetReceive());
 
   mcpArdu.readAllMcp(MCP1_ADDR, MCP1s.MCPAM, MCP1s.MCPAF, MCP1s.MCPAS, MCP_A_RW);
   mcpArdu.writeMcp(MCP1_ADDR, MCP1s.MCPAM, MCP_B_RW);
