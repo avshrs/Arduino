@@ -1,6 +1,6 @@
 #include "MCP23017.h"
 #include <Wire.h>
-#import "Arduino.h"
+//#include "Arduino.h"
 
 
 MCP::MCP(uint8_t mcpAddress, uint8_t sideA, uint8_t pullA, uint8_t sideB, uint8_t pullB){                  // args:   i2c address , side a function,side a pullup bool, side b pullup bool,  side b function 
@@ -29,15 +29,16 @@ MCP::MCP(uint8_t mcpAddress, uint8_t sideA, uint8_t pullA, uint8_t sideB, uint8_
 
 }
 
-void WriteAll(uint8_t, uint8_t, uint8_t);        // args: bitmask, side , foce(bool)
-void ReadAll(uint8_t);                        // args: side
-void WriteOne(uint8_t, uint8_t, uint8_t);        // args: pin, side , foce(bool)
-void ReadOne(uint8_t, uint8_t);               // args: side, pin
+void MCP::writeAll(uint8_t a, uint8_t b, uint8_t c){
+    a=0;
+}        // args: bitmask, side , foce(bool)
 
-void ArduMCP::initMcp(const uint8_t &MCP_ADDR, const  uint8_t &MCP_SIDE, const uint8_t &MCP_DIRECTION){   
-  Wire.begin();
-  Wire.beginTransmission (MCP_ADDR);  // expander has I2C address 0x20
-  Wire.write (MCP_SIDE);   // register 0 is the I/O direction register for Port A
-  Wire.write (MCP_DIRECTION);   //  0x00 for all pins to output mode, 0xFF for all pins to input mode
-  Wire.endTransmission ();
-}
+void MCP::readAll(uint8_t a){
+    a=0;
+}                        // args: side
+void MCP::writeOne(uint8_t a, uint8_t b, uint8_t c){
+    a=0;
+}        // args: pin, side , foce(bool)
+void MCP::readOne(uint8_t a, uint8_t b){
+    a=0;
+}               // args: side, pin
