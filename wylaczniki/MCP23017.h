@@ -1,5 +1,5 @@
-#ifndef MCP23S17_h
-#define MCP23S17_h
+#ifndef MCP23017_h
+#define MCP23017_h
 
 #define    IODIRA    (0x00)      // MCP23x17 I/O Direction Register
 #define    IODIRB    (0x01)      // 1 = Input (default), 0 = Output
@@ -36,12 +36,24 @@
 
 #include <Arduino.h>
 
+
+struct Smcp{
+       uint8_t aMcpMemory = 0;
+       uint8_t aMcpForce = 0;
+       uint8_t aMcpState = 0;
+       uint8_t bMcpMemory = 0;
+       uint8_t bMcpForce = 0;
+       uint8_t bMcpState = 0;
+};
+
+
 class MCP {
     public:
         MCP(uint8_t mcpAddress, uint8_t sideA, uint8_t pullA, uint8_t sideB, uint8_t pullB);                  // args:   i2c address , side a function,side a pullup bool, side b pullup bool,  side b function 
-        void WriteAll(uint8_t, uint8_t, uint8_t);        // args: bitmask, side , foce(bool)
-        void ReadAll(uint8_t);                        // args: side
-        void WriteOne(uint8_t, uint8_t, uint8_t);        // args: pin, side , foce(bool)
-        void ReadOne(uint8_t, uint8_t);               // args: side, pin
+        Smcp MCPs;
+        void writeAll(uint8_t a, uint8_t b, uint8_t c);        // args: bitmask, side , foce(bool)
+        void readAll(uint8_t a);                        // args: side
+        void writeOne(uint8_t a, uint8_t b, uint8_t c );        // args: pin, side , foce(bool)
+        void readOne(uint8_t a, uint8_t b);               // args: side, pin
 };
-#endif //MCP23S17
+#endif //MCP23017
