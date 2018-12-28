@@ -78,6 +78,19 @@ void ArduMCP::setMcpToOn(const uint8_t &I2C_ADDR,uint8_t PIN, uint8_t &MEMORY, u
   }
 }
 
+void ArduMCP::setAllMcpToOff(const uint8_t &I2C_ADDR,uint8_t PIN, uint8_t &MEMORY, uint8_t &FORCED,const uint8_t SIDE, bool FORCE){
+  uint8_t mask = (1 << PIN);
+  if((MEMORY & mask) != mask){
+    MEMORY |= mask;
+  if(FORCE)
+      if ((FORCED & mask) > 0)     
+          FORCED &= ~mask;
+      else 
+          FORCED |= mask;
+    writeMcp(I2C_ADDR,MEMORY,SIDE);
+  }
+}
+
 
 void ArduMCP::setMcpToOff(const uint8_t &I2C_ADDR, uint8_t PIN, uint8_t &MEMORY, uint8_t &FORCED,const uint8_t SIDE, bool FORCE){
   uint8_t mask = (1 << PIN);

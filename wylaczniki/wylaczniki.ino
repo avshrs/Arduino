@@ -28,10 +28,10 @@ void udpSerialPrint(uint16_t dest_port, uint8_t src_ip[IP_LEN], uint16_t src_por
   
   data_udp =(SERIALMCPFRAME*)data;
   binSerialCom();
-  mcpArdu.print_binary8(data_udp->HEAD);
-  mcpArdu.print_binary8(data_udp->MCPADDRESS);
-  mcpArdu.print_binary8(data_udp->PIN);
-  mcpArdu.print_binary8(data_udp->RW);
+  //mcpArdu.print_binary8(data_udp->HEAD);
+  //mcpArdu.print_binary8(data_udp->MCPADDRESS);
+  //mcpArdu.print_binary8(data_udp->PIN);
+  //mcpArdu.print_binary8(data_udp->RW);
 
 
 }
@@ -111,6 +111,7 @@ void binSerialCom(){
           data_udp->MCPADDRESS= 0;
           data_udp->HEAD = 0;
           data_udp->PIN= 0;
+          data_udp->RW= 0;
         }
         
     

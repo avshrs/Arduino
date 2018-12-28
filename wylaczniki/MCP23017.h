@@ -38,20 +38,10 @@
 
 class MCP {
     public:
-        MCP(uint8_t, uint8_t);                   // Constructor to instantiate a discrete IC as an object, address 0-7, chipSelect any valid pin
-        void init();                             
-        void byteWrite(uint8_t, uint8_t);        // Typically only used internally, but allows the user to write any register if needed, so it's public
-        void pinMode(uint8_t, uint8_t);          // Sets the mode (input or output) of a single I/O pin
-        void pullupMode(uint8_t, uint8_t);       // Selects internal 100k input pull-up of a single I/O pin
-        void pullupMode(unsigned int);           // Selects internal 100k input pull-up of all I/O pins at once
-        void inputInvert(uint8_t, uint8_t);      // Selects input state inversion of a single I/O pin (writing 1 turns on inversion) 
-        
-        void digitalWrite(uint8_t, uint8_t);     // Sets an individual output pin HIGH or LOW
-        void digitalWrite(unsigned int);         // Sets all output pins at once. If some pins are configured as input, those bits will be ignored on write
-        uint8_t digitalRead(uint8_t);            // Reads an individual input pin
-        uint8_t byteRead(uint8_t);               // Reads an individual register and returns the byte. Argument is the register address
-        unsigned int digitalRead(void);          // Reads all input  pins at once. Be sure it ignore the value of pins configured as output!
+        MCP(uint8_t mcpAddress, uint8_t sideA, uint8_t pullA, uint8_t sideB, uint8_t pullB);                  // args:   i2c address , side a function,side a pullup bool, side b pullup bool,  side b function 
+        void WriteAll(uint8_t, uint8_t, uint8_t);        // args: bitmask, side , foce(bool)
+        void ReadAll(uint8_t);                        // args: side
+        void WriteOne(uint8_t, uint8_t, uint8_t);        // args: pin, side , foce(bool)
+        void ReadOne(uint8_t, uint8_t);               // args: side, pin
 };
-
-
 #endif //MCP23S17
