@@ -37,23 +37,35 @@
 #include <Arduino.h>
 
 
-struct Smcp{
-       uint8_t aMcpMemory = 0;
-       uint8_t aMcpForce = 0;
-       uint8_t aMcpState = 0;
-       uint8_t bMcpMemory = 0;
-       uint8_t bMcpForce = 0;
-       uint8_t bMcpState = 0;
-};
+uint8_t aMcpMemory = 0;
+uint8_t aMcpForce = 0;
+uint8_t aMcpState = 0;
+uint8_t bMcpMemory = 0;
+uint8_t bMcpForce = 0;
+uint8_t bMcpState = 0;
 
 
 class MCP {
     public:
-        MCP(uint8_t mcpAddress, uint8_t sideA, uint8_t pullA, uint8_t sideB, uint8_t pullB);                  // args:   i2c address , side a function,side a pullup bool, side b pullup bool,  side b function 
-        Smcp MCPs;
-        void writeAll(uint8_t a, uint8_t b, uint8_t c);        // args: bitmask, side , foce(bool)
-        void readAll(uint8_t a);                        // args: side
-        void writeOne(uint8_t a, uint8_t b, uint8_t c );        // args: pin, side , foce(bool)
-        void readOne(uint8_t a, uint8_t b);               // args: side, pin
+        uint8_t mcpAddress=0x20;
+        MCP(uint8_t cMcpAddress, uint8_t sideA, uint8_t pullA, uint8_t sideB, uint8_t pullB);                  // args:   i2c address , side a function,side a pullup bool, side b pullup bool,  side b function 
+        
+        uint8_t aMcpMemory = 0;
+        uint8_t aMcpForce = 0;
+        uint8_t aMcpState = 0;
+        uint8_t bMcpMemory = 0;
+        uint8_t bMcpForce = 0;
+        uint8_t bMcpState = 0;
+
+
+        
+        uint8_t readRaw(uint8_t);                        // args: side, memory, state
+        void readAll(uint8_t);
+        void readOne(uint8_t , uint8_t );               // args: side, pin
+        void writeRaw(uint8_t, uint8_t);
+        void writeOne(uint8_t , uint8_t , uint8_t, uint8_t);        // args: pin, side , foce(bool)
+        void writeAll(uint8_t , uint8_t , uint8_t);        // args: bitmask, side , foce(bool)
+        
+       
 };
 #endif //MCP23017
