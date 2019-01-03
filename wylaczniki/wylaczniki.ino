@@ -1,6 +1,6 @@
 //#include <stdint.h>
 #include <Wire.h>
-#INCLUDE "MCP23017.h"
+#include "MCP23017.h"
 
 #define    GPIOA    (0x12)  
 #define    GPIOB    (0x13) 
