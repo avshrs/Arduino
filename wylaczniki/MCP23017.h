@@ -38,21 +38,20 @@
 
 class MCP {
     public:
-       
-        MCP(uint8_t MCPADDRSS, uint8_t GIPOA_TYPE, uint8_t GIPOA_PULL, uint8_t GIPOA_TYPE, uint8_t GIPOB_PULL);         
+        MCP(uint8_t MCPADDRSS, uint8_t GIPOA_TYPE, uint8_t GIPOA_PULL, uint8_t GIPOB_TYPE, uint8_t GIPOB_PULL);         
         //vars
         uint8_t mcpAddress = 0x20;
-        uint8_t McpMemory[2] = 0;
-        uint8_t McpForce[2] = 0;
-        uint8_t McpState[2] = 0;
+        uint8_t McpMemory[2];
+        uint8_t McpForce[2];
+        uint8_t McpState[2];
 
         //methods
         uint8_t readRaw(uint8_t);                        // args: side, memory, state
-        void readAllFromA();
+        void readAll(uint8_t);
         void readOne(uint8_t , uint8_t );               // args: side, pin
         void writeRaw(uint8_t, uint8_t);
         void writeOne(uint8_t , uint8_t , uint8_t, uint8_t);        // args: pin, side , foce(bool)
         void writeAll(uint8_t , uint8_t , uint8_t);        // args: bitmask, side , foce(bool)
          
 };
-#endif //MCP23017
+#endif //MCP23017_h

@@ -88,14 +88,20 @@ void MCP::writeOne(uint8_t pin, uint8_t value, uint8_t side, uint8_t force){
             McpForce[s] |= mask;
     writeRaw(side,McpMemory[s]);
     }
-}
+
 
 void MCP::writeAll(uint8_t values, uint8_t side, uint8_t force){
     uint8_t s = 0;
     if (side == 0x13) s = 1;
     if (force == 0xff){
-        McpForce[s] = (~McpMemory[s] &value) | (McpMemory[s]& ~value);
+        McpForce[s] = (~McpMemory[s] &values) | (McpMemory[s]& ~values);
         McpMemory[s] = values; 
         McpState[s] = values; 
     }
+    else {
+        McpMemory[s] = values; 
+        McpState[s] = values; 
+    }
+    writeRaw(side,McpMemory[s]);
+    
 }
