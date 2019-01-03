@@ -33,39 +33,26 @@
 #define    OLATA     (0x14)      // MCP23x17 Output Latch Register
 #define    OLATB     (0x15)      // 1 = Latch High, 0 = Latch Low (default) Reading Returns Latch State, Not Port Value!
 
-
 #include <Arduino.h>
-
-
-uint8_t aMcpMemory = 0;
-uint8_t aMcpForce = 0;
-uint8_t aMcpState = 0;
-uint8_t bMcpMemory = 0;
-uint8_t bMcpForce = 0;
-uint8_t bMcpState = 0;
 
 
 class MCP {
     public:
-        uint8_t mcpAddress=0x20;
-        MCP(uint8_t cMcpAddress, uint8_t sideA, uint8_t pullA, uint8_t sideB, uint8_t pullB);                  // args:   i2c address , side a function,side a pullup bool, side b pullup bool,  side b function 
-        
-        uint8_t aMcpMemory = 0;
-        uint8_t aMcpForce = 0;
-        uint8_t aMcpState = 0;
-        uint8_t bMcpMemory = 0;
-        uint8_t bMcpForce = 0;
-        uint8_t bMcpState = 0;
+       
+        MCP(uint8_t MCPADDRSS, uint8_t GIPOA_TYPE, uint8_t GIPOA_PULL, uint8_t GIPOA_TYPE, uint8_t GIPOB_PULL);         
+        //vars
+        uint8_t mcpAddress = 0x20;
+        uint8_t McpMemory[2] = 0;
+        uint8_t McpForce[2] = 0;
+        uint8_t McpState[2] = 0;
 
-
-        
+        //methods
         uint8_t readRaw(uint8_t);                        // args: side, memory, state
-        void readAll(uint8_t);
+        void readAllFromA();
         void readOne(uint8_t , uint8_t );               // args: side, pin
         void writeRaw(uint8_t, uint8_t);
         void writeOne(uint8_t , uint8_t , uint8_t, uint8_t);        // args: pin, side , foce(bool)
         void writeAll(uint8_t , uint8_t , uint8_t);        // args: bitmask, side , foce(bool)
-        
-       
+         
 };
 #endif //MCP23017
