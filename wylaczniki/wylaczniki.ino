@@ -1,9 +1,5 @@
 //#include <stdint.h>
 #include <Wire.h>
-#include "vars.h"
-#include "helpers.h"
-ArduMCP mcpArdu;
-#include "print_s.h"
 #INCLUDE "MCP23017.h"
 
 #define    GPIOA    (0x12)  
