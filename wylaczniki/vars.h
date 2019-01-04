@@ -6,8 +6,6 @@
 #define    FORCE        (0xFF) 
 #define    NFORCE       (0x00) 
 
-
-
 #define    MPC1         (0x00)  
 #define    MPC2         (0x01) 
 #define    MPC3         (0x02)  
@@ -42,10 +40,10 @@
 
 
 struct SERIALMCPFRAME{
-       uint8_t MCPNR = 0;  //0xA0 read value from side = A /0xB0 read value from side = b //0xA1 write walue A //0xB1 write walue  B
-       uint8_t MCPSIDE = 0; //sensor number i2c adres eg 0x20, 0x21 to 0x27
-       uint8_t INSTRUCTIONS = 0;          
-       uint8_t VALUE = 0;
+    uint8_t INSTRUCTIONS = 0;          
+    uint8_t MCPNR = 0; 
+    uint8_t MCPSIDE = 0;
+    uint8_t VALUE = 0;
        
 };
 

@@ -8,7 +8,7 @@
 
 class Communication{
 public:
-    void checkPayloadData(SERIALMCPFRAME* data, MCP *mcpc[8]);
+    void checkPayloadData(SERIALMCPFRAME* data, MCP *mcpc[8], int &delay);
     
 
 };

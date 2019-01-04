@@ -26,7 +26,7 @@ void udpSerialPrint(uint16_t dest_port, uint8_t src_ip[IP_LEN], uint16_t src_por
   IPAddress src(src_ip[0],src_ip[1],src_ip[2],src_ip[3]);
   
   data_udp =(SERIALMCPFRAME*)data;
-  comm.checkPayloadData(data_udp,mcpc);
+  comm.checkPayloadData(data_udp,mcpc,delay_v);
 
 }
 
@@ -35,6 +35,21 @@ void setup(){
     Serial.begin(1000000);
     mcpc[MPC1] = new MCP(MCP1_ADDR, MCP_IN, MCP_PULLUP, MCP_OUT, MCP_NOT_PULLUP);
     mcpc[MPC2] = new MCP(MCP2_ADDR, MCP_IN, MCP_PULLUP, MCP_OUT, MCP_NOT_PULLUP);
+   /*
+    if (ether.begin(sizeof Ethernet::buffer, mymac, SS) == 0)
+        Serial.println(F("Failed to access Ethernet controller"));
+    if (!ether.dhcpSetup())
+        Serial.println(F("DHCP failed"));
+
+    ether.printIp("IP:  ", ether.myip);
+    ether.printIp("GW:  ", ether.gwip);
+    ether.printIp("DNS: ", ether.dnsip);
+
+    //register udpSerialPrint() to port 1337
+    ether.udpServerListenOnPort(&udpSerialPrint, 1337);
+
+    //register udpSerialPrint() to port 42.
+    ether.udpServerListenOnPort(&udpSerialPrint, 42);*/
 }
 
 void loop(){
@@ -48,6 +63,7 @@ void loop(){
 
     pb.print_binary3x8(mcpc[MPC2]->McpMemory[SIDEA],mcpc[MPC2]->McpForce[SIDEA],mcpc[MPC2]->McpState[SIDEA]);
 
+    //ether.packetLoop(ether.packetReceive());
 
     delay(delay_v);    
 }    
