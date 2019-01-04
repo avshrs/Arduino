@@ -16,7 +16,6 @@ MCP *mcpc[2];
 ArduMCP pr;
 
 
-
 void setup(){
   Serial.begin(1000000);
 mcpc[0] = new MCP(0x20, 0xff, 0xff, 0x00, 0x00);
