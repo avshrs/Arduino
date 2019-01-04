@@ -1,115 +1,64 @@
-#include <Wire.h>
+
 #include "helpers.h"
-#include "Arduino.h"
+#include "print_s.h"
+#include <Arduino.h>
+PrintBin pbs;
+/*
+
+write one: 
+uint8_t 0 - 0xYZ | MCP NUMBER 0-7
+uint8_t 1 - 0xYZ | SIDE  0 A | 1 B 
+uint8_t 2 - 0x00 | write one 
+uint8_t 3 - 0xYZ | Y - PIN 0 - 7 , Z - value 0|1 0x00 | null
+
+write all: 
+uint8_t 0 - 0xYZ | MCP NUMBER 0-7
+uint8_t 1 - 0xYZ | SIDE  0 A | 1 B 
+uint8_t 2 - 0x01 | write all
+uint8_t 3 - 0xYZ | 0x00 - 0xff | egz. 0b00010001
 
 
-void ArduMCP::initMcp(const uint8_t &MCP_ADDR, const  uint8_t &MCP_SIDE, const uint8_t &MCP_DIRECTION){   
-  Wire.begin();
-  Wire.beginTransmission (MCP_ADDR);  // expander has I2C address 0x20
-  Wire.write (MCP_SIDE);   // register 0 is the I/O direction register for Port A
-  Wire.write (MCP_DIRECTION);   //  0x00 for all pins to output mode, 0xFF for all pins to input mode
-  Wire.endTransmission ();
-}
+read all: 
+uint8_t 0 - 0xYZ | MCP NUMBER 0-7
+uint8_t 1 - 0xYZ | SIDE  0 A | 1 B 
+uint8_t 2 - 0x11 | read all
+uint8_t 3 - 0x00 | null
 
+*/
 
-void ArduMCP::writeMcp(const uint8_t &MCP_ADDR,uint8_t &MCP_MEMORY, const  uint8_t MCP_RW_SIDE){   
-  Wire.begin();
-  Wire.beginTransmission (MCP_ADDR);  // expander has I2C address 0x20
-  Wire.write (MCP_RW_SIDE);   // register 0 is the I/O direction register for Port A
-  Wire.write (MCP_MEMORY);   //  0x00 for all pins to output mode, 0xFF for all pins to input mode
-  Wire.endTransmission ();
-}
-
-uint8_t ArduMCP::readMcp(const uint8_t &MCP_ADDR, const  uint8_t MCP_RW_SIDE){  
-    uint8_t value = 0; 
-    Wire.begin();
-    Wire.beginTransmission (MCP_ADDR);  // expander has I2C address 0x20
-    Wire.write (MCP_RW_SIDE);   // register 0 is the I/O direction register for Port A
-    Wire.endTransmission ();
-    Wire.requestFrom((int)MCP_ADDR, 1);
-    while(Wire.available())    
-        value = Wire.read();
-    return value;
-}
-
-void ArduMCP::readAllMcp(const uint8_t &I2C_ADDR, uint8_t &MEMORY, uint8_t &FORCED,uint8_t &STATE, const uint8_t SIDE){
-  uint8_t value = readMcp(I2C_ADDR, SIDE);
-   for ( uint8_t i = 0; i< sizeof(STATE)*8;++i){
-      uint8_t mask = (1 << i);
-      if ((value & mask) > 0) 
-          if (((STATE & mask) == 0) && ((MEMORY & mask) > 0)){
-             
-              FORCED &= ~mask;
-          }
-      
-      if ((value & mask) == 0) 
-          if (((STATE & mask) > 0) && ((MEMORY & mask) == 0)){
-              FORCED &= ~mask;
-             
-          }
-      }
-  STATE = value;
-  MEMORY = MEMORY^((~FORCED)&(value^MEMORY));
-
-}
-
-void ArduMCP::print_binary8(uint8_t &v){  
-    for (uint8_t i = 0 ; i < (sizeof(v)*8) ; ++i){
-       if ((v & (1 << i )) > 0) 
-           Serial.print("1");
-       else
-           Serial.print("0"); 
+void Communication::checkPayloadData(SERIALMCPFRAME* data, MCP *mcpc[8]){
+    if(data->INSTRUCTIONS == 0x00){  
+        mcpc[data->MCPNR]->writeOne((uint8_t)((data->VALUE)>>4),(uint8_t)(data->VALUE)&0x0F, (uint8_t)data->MCPSIDE, 0xFF);
+    
     }
-    Serial.println(" "); 
-}
-
-
-
-void ArduMCP::setMcpToOn(const uint8_t &I2C_ADDR,uint8_t PIN, uint8_t &MEMORY, uint8_t &FORCED,const uint8_t SIDE, bool FORCE){
-  uint8_t mask = (1 << PIN);
-  if((MEMORY & mask) != mask){
-    MEMORY |= mask;
-  if(FORCE)
-      if ((FORCED & mask) > 0)     
-          FORCED &= ~mask;
-      else 
-          FORCED |= mask;
-    writeMcp(I2C_ADDR,MEMORY,SIDE);
-  }
-}
-
-void ArduMCP::setMcpToOff(const uint8_t &I2C_ADDR, uint8_t PIN, uint8_t &MEMORY, uint8_t &FORCED,const uint8_t SIDE, bool FORCE){
-  uint8_t mask = (1 << PIN);
-  if ((MEMORY &   mask) == mask){
-    MEMORY &= ~mask;
-   if(FORCE)
-        if ((FORCED & mask) > 0)     
-            FORCED &= ~mask;
-        else      
-            FORCED |= mask;
-    writeMcp(I2C_ADDR,MEMORY,SIDE);   
-  }
-}
-
-void ArduMCP::print_binary(uint32_t &v){  
-    for (uint8_t i = 0 ; i < (sizeof(v)*8) ; ++i){
-       if ( i == 8 )Serial.print(","); 
-       if ( i == 16 )Serial.print(","); 
-       if ( i == 24 )Serial.print(","); 
-       if ((v & (1 << i )) > 0) 
-           Serial.print("1");
-       else
-           Serial.print("0"); 
+    else if(data->INSTRUCTIONS == 0x01){  
+        mcpc[data->MCPNR]->writeAll(data->VALUE, data->MCPSIDE, 0xFF);
+    
     }
-    Serial.println(" "); 
-}
-
-void ArduMCP::print_binary16(uint16_t &v){  
-    for (uint8_t i = 0 ; i < (sizeof(v)*8) ; ++i){
-       if ((v & (1 << i )) > 0) 
-           Serial.print("1");
-       else
-           Serial.print("0"); 
+    else if(data->INSTRUCTIONS == 0x11){  
+        mcpc[data->MCPNR]->readAll(data->MCPSIDE);
+        pbs.print_binary3x8(*mcpc[data->MCPNR]->McpMemory,*mcpc[data->MCPNR]->McpForce,*mcpc[data->MCPNR]->McpState);
+                
+        /*
+        TO DO
+        communication back to leasener on ip;
+        */
+            
     }
-    Serial.println(" "); 
-}
+          
+        data->MCPNR= 0;
+        data->MCPSIDE = 0;
+        data->INSTRUCTIONS= 0;
+        data->VALUE= 0;
+          
+    }
+        
+    
+
+
+
+
+
+
+
+

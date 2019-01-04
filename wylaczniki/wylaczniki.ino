@@ -1,37 +1,53 @@
 //#include <stdint.h>
 #include <Wire.h>
-#include "helpers.h"
-
+#include <Arduino.h>
+#include "print_s.h"
+#include "vars.h"
 #include "MCP23017.h"
-
-#define    GPIOA    (0x12)  
-#define    GPIOB    (0x13) 
-
-#define    MemA     (0x00)  
-#define    MemB     (0x01) 
+#include "helpers.h"
+#include </tmp/a/Arduino/wylaczniki/src/EtherCard.h>
+#include <IPAddress.h>
 
 
 int delay_v = 10;  
-MCP *mcpc[2];
-ArduMCP pr;
+MCP *mcpc[8];
+PrintBin pb;
+Communication comm;
 
+SERIALMCPFRAME* data_udp;
 
-void setup(){
-  Serial.begin(1000000);
-mcpc[0] = new MCP(0x20, 0xff, 0xff, 0x00, 0x00);
-mcpc[1] = new MCP(0x21, 0xff, 0xff, 0x00, 0x00);
+// ethernet mac address - must be unique on your network
+static byte mymac[] = { 0x70,0x69,0x69,0x2D,0x30,0x31 };
+
+byte Ethernet::buffer[500]; // tcp/ip send and receive buffer
+
+//callback that prints received packets to the serial port
+void udpSerialPrint(uint16_t dest_port, uint8_t src_ip[IP_LEN], uint16_t src_port, const char *data, uint16_t len){
+  IPAddress src(src_ip[0],src_ip[1],src_ip[2],src_ip[3]);
+  
+  data_udp =(SERIALMCPFRAME*)data;
+  comm.checkPayloadData(data_udp,mcpc);
 
 }
 
-void loop(){
-  mcpc[0]->readAll(GPIOA);
-  pr.print_binary8(mcpc[MemA]->McpMemory[MemA]);
-  mcpc[0]->writeAll(mcpc[MemA]->McpMemory[MemA],GPIOB,0x00);
 
-  mcpc[1]->readAll(GPIOA);
-  mcpc[1]->writeAll(mcpc[MemA]->McpMemory[MemA],GPIOB,0x00);
+void setup(){
+    Serial.begin(1000000);
+    mcpc[MPC1] = new MCP(MCP1_ADDR, MCP_IN, MCP_PULLUP, MCP_OUT, MCP_NOT_PULLUP);
+    mcpc[MPC2] = new MCP(MCP2_ADDR, MCP_IN, MCP_PULLUP, MCP_OUT, MCP_NOT_PULLUP);
+}
+
+void loop(){
+    mcpc[MPC1]->readAll(GPIOA);
+    mcpc[MPC1]->writeAll(mcpc[MPC1]->McpMemory[SIDEA],GPIOB,NFORCE);
+
+    pb.print_binary3x8(mcpc[MPC1]->McpMemory[SIDEA], mcpc[MPC1]->McpForce[SIDEA], mcpc[MPC1]->McpState[SIDEA]);
+
+    mcpc[MPC2]->readAll(GPIOA);
+    mcpc[MPC2]->writeAll(mcpc[MPC2]->McpMemory[SIDEA],GPIOB,NFORCE);
+
+    pb.print_binary3x8(mcpc[MPC2]->McpMemory[SIDEA],mcpc[MPC2]->McpForce[SIDEA],mcpc[MPC2]->McpState[SIDEA]);
 
 
     delay(delay_v);    
-
 }    

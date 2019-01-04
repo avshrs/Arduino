@@ -46,12 +46,11 @@ class MCP {
         uint8_t McpState[2];
 
         //methods
-        uint8_t readRaw(uint8_t);                        // args: side, memory, state
-        void readAll(uint8_t);
-        void readOne(uint8_t , uint8_t );               // args: side, pin
-        void writeRaw(uint8_t, uint8_t);
-        void writeOne(uint8_t , uint8_t , uint8_t, uint8_t);        // args: pin, side , foce(bool)
-        void writeAll(uint8_t , uint8_t , uint8_t);        // args: bitmask, side , foce(bool)
+        uint8_t readRaw(uint8_t side);                        
+        void readAll(uint8_t Side);
+        void writeRaw(uint8_t side, uint8_t memory);
+        void writeOne(uint8_t pin, uint8_t value, uint8_t side, uint8_t force);
+        void writeAll(uint8_t values, uint8_t side, uint8_t force);
          
 };
 #endif //MCP23017_h
