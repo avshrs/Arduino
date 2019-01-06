@@ -48,10 +48,18 @@ void MCP::readAll(uint8_t side){
     uint8_t s = GPIOA;
     if (side > 0x00) s = GPIOB;
     uint8_t value = readRaw(s);
+
     McpForce[side] = (~value & ~McpState[side] & McpForce[side]) | (value & McpState[side] & McpForce[side]);
     McpState[side] = value;
-    McpMemory[side] = ((~McpForce[side] & (value)) | (McpMemory[side] & McpForce[side]));
+ //   McpMemory[side] = ((~McpForce[side] & (value)) | (McpMemory[side] & McpForce[side]));
+    //  test multivibrator mask 
+    McpMemory[side] = ( value & ~McpForce[side] & ~McpBiStable[side]) |
+                      ( ~McpState[side] & value &  McpBiStable[side])  | 
+                      ( McpState[side] & ~value &  McpBiStable[side])  |
+                      ( McpState[side] & McpForce[side] & ~McpBiStable[side]);
 }    
+
+
 
 void MCP::writeRaw(uint8_t side, uint8_t memory){
   Wire.begin();

@@ -42,16 +42,18 @@ uint8_t VALUE = 0;
 */
 
 void Communication::checkPayloadData(SERIALMCPFRAME* data, MCP *mcpc[8], int &delay){
+    // Print walue on one sensor 
     if(data->INSTRUCTIONS == 0x00){  
         mcpc[data->MCPNR]->writeOne((uint8_t)((data->VALUE)>>4),(uint8_t)(data->VALUE)&0x0F, (uint8_t)data->MCPSIDE, FORCE);
     }
-
+    // Print to all at once 
     else if(data->INSTRUCTIONS == 0x01){  
         mcpc[data->MCPNR]->writeAll(data->VALUE, data->MCPSIDE, FORCE);
     }
-    
+    // Print values from side 
     else if(data->INSTRUCTIONS == 0x11){  
         mcpc[data->MCPNR]->readAll(data->MCPSIDE);
+        //print on serial 
         pbs.print_binary3x8(mcpc[data->MCPNR]->McpMemory[data->MCPSIDE],mcpc[data->MCPNR]->McpForce[data->MCPSIDE],mcpc[data->MCPNR]->McpState[data->MCPSIDE]);
                 
         /*
