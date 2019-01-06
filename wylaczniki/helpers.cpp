@@ -26,7 +26,7 @@ uint8_t  - 0xYZ | SIDE  0 A | 1 B
 uint8_t  - 0x00 | null
 
 change delay:
-uint8_t  - 0x11 | change delay
+uint8_t  - 0xF1 | change delay
 uint8_t  - 0xYZ | MCP NUMBER 0-7
 uint8_t  - 0xYZ | SIDE  0 A | 1 B 
 uint8_t  - 0x00 | null
@@ -52,7 +52,7 @@ void Communication::checkPayloadData(SERIALMCPFRAME* data, MCP *mcpc[8], int &de
     
     else if(data->INSTRUCTIONS == 0x11){  
         mcpc[data->MCPNR]->readAll(data->MCPSIDE);
-        pbs.print_binary3x8(*mcpc[data->MCPNR]->McpMemory,*mcpc[data->MCPNR]->McpForce,*mcpc[data->MCPNR]->McpState);
+        pbs.print_binary3x8(mcpc[data->MCPNR]->McpMemory[data->MCPSIDE],mcpc[data->MCPNR]->McpForce[data->MCPSIDE],mcpc[data->MCPNR]->McpState[data->MCPSIDE]);
                 
         /*
         TO DO

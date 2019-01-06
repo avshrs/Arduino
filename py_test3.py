@@ -40,27 +40,19 @@ uint8_t  - 0xYZ | MCP NUMBER 0-7
 uint8_t  - 0xYZ | SIDE  0 A | 1 B 
 uint8_t  - 0x00 | null      
 """    
-def send_data(INSTRUCTIONS,MCPNR,MCPSIDE,VALUE):
-    HEAD_ = '{:08b}'.format(INSTRUCTIONS)
-    MCPADDRESS_  = '{:08b}'.format(MCPNR)
-    PIN_ = '{:08b}'.format(MCPSIDE)
-    RW_ = '{:08b}'.format(VALUE)
-    frame = int(HEAD_+MCPADDRESS_+PIN_+RW_, 2)
-    frame_be = struct.pack('>I', frame)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
-    sock.sendto(frame_be , (UDP_IP, UDP_PORT))
+INSTRUCTIONS = 0x11     # 
+MCPNR = 0x00             #0-7
+MCPSIDE = 0x01
+VALUE = 0x01
+HEAD_ = '{:08b}'.format(INSTRUCTIONS)
+MCPADDRESS_  = '{:08b}'.format(MCPNR)
+PIN_ = '{:08b}'.format(MCPSIDE)
+RW_ = '{:08b}'.format(VALUE)
 
+#frame = int(HEAD_+MCPADDRESS_[::-1]+PIN_[::-1]+RW_[::-1], 2)
+frame = int(HEAD_+MCPADDRESS_+PIN_+RW_, 2)
+frame_be = struct.pack('>I', frame)
 
-#send_data(0x00,0x00,0x01,0x31)
-#send_data(0x00,0x01,0x01,0x31)
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+sock.sendto(frame_be , (UDP_IP, UDP_PORT))
 
-#send_data(0x11,0x01,0x01,0xff)
-#send_data(0x11,0x00,0x01,0xff)
-
-
-send_data(0x00,0x01,0x01,0x00) 
-send_data(0x00,0x00,0x01,0x00) 
-
-send_data(0x11,0x00,0x00,0x00) #0x20 in A  
-
-send_data(0x11,0x01,0x00,0x00)

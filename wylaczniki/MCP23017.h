@@ -41,9 +41,9 @@ class MCP {
         MCP(uint8_t MCPADDRSS, uint8_t GIPOA_TYPE, uint8_t GIPOA_PULL, uint8_t GIPOB_TYPE, uint8_t GIPOB_PULL);         
         //vars
         uint8_t mcpAddress = 0x20;
-        uint8_t McpMemory[2];
-        uint8_t McpForce[2];
-        uint8_t McpState[2];
+        uint8_t McpMemory[2]={0};
+        uint8_t McpForce[2]={0};
+        uint8_t McpState[2]={0};
 
         //methods
         uint8_t readRaw(uint8_t side);                        

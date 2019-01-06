@@ -1,6 +1,8 @@
 #include "MCP23017.h"
+#include "vars.h"
 #include <Wire.h>
 #include <Arduino.h>
+
 
 MCP::MCP(uint8_t MCPADDRSS, uint8_t GIPOA_TYPE, uint8_t GIPOA_PULL, uint8_t GIPOB_TYPE, uint8_t GIPOB_PULL){
     mcpAddress = MCPADDRSS;
@@ -39,69 +41,72 @@ uint8_t MCP::readRaw(uint8_t side){
     Wire.requestFrom((int)mcpAddress, 1);
     while(Wire.available())    
         r_value = Wire.read();
-    return r_value;
+    return ~r_value;
 }
 
-void MCP::readAll(uint8_t Side){
-    uint8_t value = readRaw(Side);
-    uint8_t s = 0;
-    if (Side == 0x13) s = 1;
-    for(uint8_t i = 0; i< sizeof(McpState[s])*8; ++i){
-        uint8_t mask = (1 << i);
-        if ((value & mask) > 0) 
-            if (((McpState[s] & mask) == 0) && ((McpMemory[s] & mask) > 0))
-                McpForce[s] &= ~mask;      
-        if ((value & mask) == 0) 
-            if (((McpState[s] & mask) > 0) && ((McpMemory[s] & mask) == 0))
-            McpForce[s] &= ~mask;
-    }
-    McpState[s] = value;
-    McpMemory[s] = McpMemory[s]^((~McpForce[s])&(value^McpMemory[s]));
-}
+void MCP::readAll(uint8_t side){
+    uint8_t s = GPIOA;
+    if (side > 0x00) s = GPIOB;
+    uint8_t value = readRaw(s);
+    McpForce[side] = (~value & ~McpState[side] & McpForce[side]) | (value & McpState[side] & McpForce[side]);
+    McpState[side] = value;
+    McpMemory[side] = ((~McpForce[side] & (value)) | (McpMemory[side] & McpForce[side]));
+}    
 
 void MCP::writeRaw(uint8_t side, uint8_t memory){
   Wire.begin();
-  Wire.beginTransmission (mcpAddress);  // expander has I2C address 0x20
-  Wire.write (side);   // register 0 is the I/O direction register for Port A
-  Wire.write (memory);   //  0x00 for all pins to output mode, 0xFF for all pins to input mode
+  Wire.beginTransmission (mcpAddress);
+  Wire.write (side);  
+  Wire.write (memory);   
   Wire.endTransmission ();
 }
 
 void MCP::writeOne(uint8_t pin, uint8_t value, uint8_t side, uint8_t force){
     uint8_t mask = (1 << pin);
-    uint8_t s = 0;
     uint8_t value_= 0x00;
-    //side selector
-    if (side == 0x13) s = 1;
-
-    if (value > 0) value_ = (1 << pin);
-    
-    if((McpMemory[s] & mask) > (value_ & mask))
-        McpMemory[s] &= ~mask;
-    else 
-        McpMemory[s] |= mask;
-    
-    if(force == 0xff)
-        if ((McpForce[s] & mask) > 0)     
-            McpForce[s] &= ~mask;
-        else 
-            McpForce[s] |= mask;
-    writeRaw(side,McpMemory[s]);
+    uint8_t _write = GPIOA;
+    uint8_t _read = 0x01;
+    if (side > 0x00) {
+        _read = 0;
+        _write = GPIOB;
     }
-
+    if (value > 0) value_ = (1 << pin); 
+    if (value_ > 0 &&  (McpMemory[_read] & mask) == 0){
+        McpMemory[_read] |= mask;
+        if(force == FORCE)
+            if ((McpForce[_read] & mask) == 0)     
+                McpForce[_read] |= mask;
+            else if ((McpForce[_read] & mask) > 0)     
+                McpForce[_read] &= ~mask;
+    }
+    else if ((value_ & mask) == 0 &&  (McpMemory[_read] & mask) > 0){
+        McpMemory[_read] &= ~mask;
+        if(force == FORCE)
+            if ((McpForce[_read] & mask) == 0)     
+                McpForce[_read] |= mask;
+            else if ((McpForce[_read] & mask) > 0)     
+                McpForce[_read] &= ~mask;
+    }
+    writeRaw(_write,McpMemory[_read]);
+}
 
 void MCP::writeAll(uint8_t values, uint8_t side, uint8_t force){
-    uint8_t s = 0;
-    if (side == 0x13) s = 1;
-    if (force == 0xff){
-        McpForce[s] = (~McpMemory[s] &values) | (McpMemory[s]& ~values);
-        McpMemory[s] = values; 
-        McpState[s] = values; 
+    uint8_t _write = GPIOA;
+    uint8_t _read = 0x01;
+    if (side > 0x00) {
+        _read = 0;
+        _write = GPIOB;
+    }
+    if (force > 0x00){
+        McpForce[_read] =   (~McpMemory[_read] & ~values & McpForce[_read]) | 
+                            (~McpMemory[_read] &  values & ~McpForce[_read]) | 
+                            ( McpMemory[_read] & ~values & ~McpForce[_read]) | 
+                            ( McpMemory[_read] &  values &  McpForce[_read]);
+        McpMemory[_read] = values; 
     }
     else {
-        McpMemory[s] = values; 
-        McpState[s] = values; 
+        McpMemory[_read] = values;      
     }
-    writeRaw(side,McpMemory[s]);
-    
+    writeRaw(_write,McpMemory[_read]); 
 }
+
